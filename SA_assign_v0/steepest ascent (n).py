@@ -2,7 +2,6 @@ import random
 import math
 
 DELTA = 0.01   # Mutation step size
-LIMIT_STUCK = 100 # Max number of evaluations enduring no improvement
 NumEval = 0    # Total number of evaluations
 
 
@@ -10,7 +9,7 @@ def main():
     # Create an instance of numerical optimization problem
     p = createProblem()   # 'p': (expr, domain)
     # Call the search algorithm
-    solution, minimum = firstChoice(p)
+    solution, minimum = steepestAscent(p)
     # Show the problem and algorithm settings
     describeProblem(p)
     displaySetting()
@@ -27,28 +26,55 @@ def createProblem(): ###
     ## 'varNames' is a list of variable names.
     ## 'low' is a list of lower bounds of the varaibles.
     ## 'up' is a list of upper bounds of the varaibles.
+
+    file_name = input("Enter the file name of a function: ")
+
+    expression = ""
+    varName = []
+    low = []
+    up = []
+    with open(file_name, 'r') as f:
+        expression = f.readline().strip()
+        for line in f:
+            line = line.strip()
+            if line:
+                parts = line.split(",")
+                varName.append(parts[0])
+                low.append(float(parts[1]))
+                up.append(float(parts[2]))
+    domain = (varName, low, up)
+
     return expression, domain
 
 
-def firstChoice(p):
-    current = randomInit(p)   # 'current' is a list of values
+def steepestAscent(p):
+    current = randomInit(p) # 'current' is a list of values
     valueC = evaluate(current, p)
-    i = 0
-    while i < LIMIT_STUCK:
-        successor = randomMutant(current, p)
-        valueS = evaluate(successor, p)
-        if valueS < valueC:
+    while True:
+        neighbors = mutants(current, p)
+        successor, valueS = bestOf(neighbors, p)
+        if valueS >= valueC:
+            break
+        else:
             current = successor
             valueC = valueS
-            i = 0              # Reset stuck counter
-        else:
-            i += 1
     return current, valueC
 
 
 def randomInit(p): ###
+    domain = p[1]
+
+    varName = domain[0]
+    low = domain[1]
+    up = domain[2]
+
+    init = []
+    for i in range(len(varName)):
+        value = random.uniform(low[i], up[i])
+        init.append(value)
     return init    # Return a random initial point
                    # as a list of values
+
 
 def evaluate(current, p):
     ## Evaluate the expression of 'p' after assigning
@@ -57,15 +83,20 @@ def evaluate(current, p):
     
     NumEval += 1
     expr = p[0]         # p[0] is function expression
-    varNames = p[1][0]  # p[1] is domain: [varNames, low, up]
+    varNames = p[1][0]  # p[1] is domain
     for i in range(len(varNames)):
         assignment = varNames[i] + '=' + str(current[i])
         exec(assignment)
     return eval(expr)
 
 
-def randomMutant(current, p): ###
-    return mutate(current, i, d, p) # Return a random successor
+def mutants(current, p): ###
+    neighbors = []
+    num_vars = len(p[1][0])
+    for i in range(num_vars):
+        neighbors.append(mutate(current, i, DELTA, p))
+        neighbors.append(mutate(current, i, -DELTA, p))
+    return neighbors     # Return a set of successors
 
 
 def mutate(current, i, d, p): ## Mutate i-th of 'current' if legal
@@ -76,6 +107,19 @@ def mutate(current, i, d, p): ## Mutate i-th of 'current' if legal
     if l <= (curCopy[i] + d) <= u:
         curCopy[i] += d
     return curCopy
+
+
+def bestOf(neighbors, p): ###
+    best = neighbors[0]
+    bestValue = evaluate(neighbors[0], p)
+
+    for neighbor in neighbors:
+        nowValue = evaluate(neighbor, p)
+        if (nowValue < bestValue):
+            best = neighbor
+            bestValue = nowValue
+    return best, bestValue
+
 
 def describeProblem(p):
     print()
@@ -88,11 +132,13 @@ def describeProblem(p):
     for i in range(len(low)):
         print(" " + varNames[i] + ":", (low[i], up[i])) 
 
+
 def displaySetting():
     print()
-    print("Search algorithm: First-Choice Hill Climbing")
+    print("Search algorithm: Steepest-Ascent Hill Climbing")
     print()
     print("Mutation step size:", DELTA)
+
 
 def displayResult(solution, minimum):
     print()
@@ -105,5 +151,6 @@ def displayResult(solution, minimum):
 def coordinate(solution):
     c = [round(value, 3) for value in solution]
     return tuple(c)  # Convert the list to a tuple
+
 
 main()

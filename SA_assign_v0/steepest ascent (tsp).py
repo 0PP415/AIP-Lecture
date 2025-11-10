@@ -1,15 +1,14 @@
 import random
 import math
 
-LIMIT_STUCK = 100 # Max number of evaluations enduring no improvement
 NumEval = 0    # Total number of evaluations
 
 
 def main():
     # Create an instance of TSP
-    p = createProblem()    # 'p': (numCities, locations, distanceTable)
+    p = createProblem()    # 'p': (numCities, locations, table)
     # Call the search algorithm
-    solution, minimum = firstChoice(p)
+    solution, minimum = steepestAscent(p)
     # Show the problem and algorithm settings
     describeProblem(p)
     displaySetting()
@@ -21,14 +20,17 @@ def createProblem():
     ## Then, create a problem instance and return it.
     fileName = input("Enter the file name of a TSP: ")
     infile = open(fileName, 'r')
+
     # First line is number of cities
     numCities = int(infile.readline())
     locations = []
+
     line = infile.readline()  # The rest of the lines are locations
     while line != '':
         locations.append(eval(line)) # Make a tuple and append
         line = infile.readline()
     infile.close()
+
     table = calcDistanceTable(numCities, locations)
     return numCities, locations, table
 
@@ -37,19 +39,17 @@ def calcDistanceTable(numCities, locations): ###
     return table # A symmetric matrix of pairwise distances
 
 
-def firstChoice(p):
+def steepestAscent(p):
     current = randomInit(p)   # 'current' is a list of city ids
     valueC = evaluate(current, p)
-    i = 0
-    while i < LIMIT_STUCK:
-        successor = randomMutant(current, p)
-        valueS = evaluate(successor, p)
-        if valueS < valueC:
+    while True:
+        neighbors = mutants(current, p)
+        (successor, valueS) = bestOf(neighbors, p)
+        if valueS >= valueC:
+            break
+        else:
             current = successor
             valueC = valueS
-            i = 0              # Reset stuck counter
-        else:
-            i += 1
     return current, valueC
 
 def randomInit(p):   # Return a random initial tour
@@ -66,16 +66,21 @@ def evaluate(current, p): ###
     return cost
 
 
-def randomMutant(current, p): # Apply inversion
-    while True:
-        i, j = sorted([random.randrange(p[0])
-                       for _ in range(2)])
-        if i < j:
+def mutants(current, p): # Apply inversion
+    n = p[0]
+    neighbors = []
+    count = 0
+    triedPairs = []
+    while count <= n:  # Pick two random loci for inversion
+        i, j = sorted([random.randrange(n) for _ in range(2)])
+        if i < j and [i, j] not in triedPairs:
+            triedPairs.append([i, j])
             curCopy = inversion(current, i, j)
-            break
-    return curCopy
+            count += 1
+            neighbors.append(curCopy)
+    return neighbors
 
-def inversion(current, i, j):  # Perform inversion
+def inversion(current, i, j):  ## Perform inversion
     curCopy = current[:]
     while i < j:
         curCopy[i], curCopy[j] = curCopy[j], curCopy[i]
@@ -83,6 +88,17 @@ def inversion(current, i, j):  # Perform inversion
         j -= 1
     return curCopy
 
+def bestOf(neighbors, p): ###
+    best = neighbors[0]
+    bestValue = evaluate(best, p)
+
+    for neighbor in neighbor:
+        nowValue = evaluate(neighbor, p)
+        if (nowValue < best):
+            best = neighbor
+            bestValue = nowValue
+
+    return best, bestValue
 
 def describeProblem(p):
     print()
@@ -97,7 +113,7 @@ def describeProblem(p):
 
 def displaySetting():
     print()
-    print("Search algorithm: First-Choice Hill Climbing")
+    print("Search algorithm: Steepest-Ascent Hill Climbing")
 
 def displayResult(solution, minimum):
     print()
