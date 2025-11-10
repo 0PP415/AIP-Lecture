@@ -80,14 +80,16 @@ def evaluate(current, p):
     ## Evaluate the expression of 'p' after assigning
     ## the values of 'current' to the variables
     global NumEval
-    
     NumEval += 1
+
     expr = p[0]         # p[0] is function expression
     varNames = p[1][0]  # p[1] is domain
+    
+    vars = {}    
     for i in range(len(varNames)):
-        assignment = varNames[i] + '=' + str(current[i])
-        exec(assignment)
-    return eval(expr)
+        vars[varNames[i]] = current[i]
+
+    return eval(expr, vars)
 
 
 def mutants(current, p): ###
