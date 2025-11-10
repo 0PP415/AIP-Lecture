@@ -11,10 +11,10 @@ def steepestAscent(p):
     valueC = evaluate(current, p)
 
     while True:
-        # 3. SAHC-T의 mutants() 호출 (이 파일의 51행)
+        # 3. SAHC-T의 mutants() 호출
         neighbors = mutants(current, p)
 
-        # 4. (N 버전과 동일) 최고 이웃 선택
+        # 4. 최고 이웃 선택
         successor, valueS = bestOf(neighbors, p)
 
         # 5. (최소화) 종료 조건
