@@ -150,10 +150,20 @@ class Numeric(Problem):
         ### Your code goes here!
         ###        
         # 1. get the gradient at point 'x'
+        grad = self.gradient(x, v)
+
         # 2. get a new neighbor
+        x_new = []
+        for i in range(len(x)):
+            x_new.append(x[i] - self._alpha * grad[i])
+
         # 3. check if the new neighbor is within the domain (isLegal?)
-        #   if yes, return the new neighbor
-        #   if no, return the current point x
+        if self.isLegal(x_new):
+            #   if yes, return the new neighbor
+            return x_new    
+        else:
+            #   if no, return the current point x
+            return x
 
     def gradient(self, x, v): # 'x' is a vector (list of valules)
         ###
@@ -162,17 +172,40 @@ class Numeric(Problem):
         grad = []   # Calculate partial derivatives and combine them
         for i in range(len(x)):
             # 1. make a copy of x
+            x_copy = x[:]
+            
             # 2. increase x_copy[i] by dx
+            x_copy[i] += self._dx
+
             # 3. compute the gradient "g" for x_copy = {new_eval - curr_eval} / dx
+            new_eval = self.evaluate(x_copy)
+            g = (new_eval - v) / self._dx
             grad.append(g)
+
         return grad
 
     def isLegal(self, x):   # Check if 'x' is within the domain
         ###
         ### Your code goes here!
         ###
+        low = self._domain[1]
+        up = self._domain[2]
+
         # flag = True if all 'x' are within the domain
         # flag = False if any of 'x' is outside the domain
+        flag = True
+        for i in range(len(x)):
+            val = x[i]
+            if val < low[i] or val > up[i]:
+                flag = False
+                break
+
+        # 물론 강의 자료에서는 
+        # "벡터 x를 구성하는 모든 xi 각각이, 지정된 범위를 벗어나지 않은 경우" 
+        # 를 legal 로 지정하고 있지만 
+        # 내가 생각하기엔 한 feature 에 대해서 범위를 벗어난 경우엔 
+        # 그 feature 만 범위 내로 되돌리고 나머지 변수는 적용해야 하지 않나 싶다
+
         return flag
 
 

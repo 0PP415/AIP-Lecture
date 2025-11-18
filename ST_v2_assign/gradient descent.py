@@ -13,10 +13,23 @@ def main():
     # Report results
     p.report()
     
-def gradientDescent(p):
+def gradientDescent(p: Numeric):
     ###
     ### Your code goes here!
     ###
+    current = p.randomInit()
+    valueC   = p.evaluate(current)
+
+    while True:
+        successor = p.takeStep(current, valueC)
+        valueS    = p.evaluate(successor)
+        if valueS < valueC:
+            current = successor
+            valueC  = valueS
+        else:
+            break
+    
+    p.storeResult(current, valueC)
 
 def displaySetting(p):
     print()
