@@ -33,13 +33,33 @@ class SteepestAscent(HillClimbing):
         ###
         # Your code goes here!
         # 기존의 steepestAscent 함수 활용
-        ...?
+        current = p.randomInit() # 'current' is a list of values
+        valueC = p.evaluate(current)
+        while True:
+            neighbors = p.mutants(current)
+            successor, valueS = self.bestOf(neighbors, p)
+            if valueS >= valueC:
+                break
+            else:
+                current = successor
+                valueC = valueS
+
+        p.storeResult(current, valueC)
 
     def bestOf(self, neighbors, p):
         ###
         # Your code goes here!
         # 기존의 bestOf 함수 활용
-        ...?
+        best = neighbors[0]
+        bestValue = p.evaluate(best)
+
+        for neighbor in neighbors:
+            nowValue = p.evaluate(neighbor)
+            if (nowValue < bestValue):
+                best = neighbor
+                bestValue = nowValue
+
+        return best, bestValue
 
 
 class FirstChoice(HillClimbing):
@@ -54,7 +74,20 @@ class FirstChoice(HillClimbing):
         ###
         # Your code goes here!
         # 기존의 firstChoice 함수 활용
-        ...?
+        current = p.randomInit()   # 'current' is a list of values
+        valueC = p.evaluate(current)
+        i = 0
+        while i < self._limitStuck:
+            successor = p.randomMutant(current)
+            valueS = p.evaluate(successor)
+            if valueS < valueC:
+                current = successor
+                valueC = valueS
+                i = 0              # Reset stuck counter
+            else:
+                i += 1
+
+        p.storeResult(current, valueC)
 
 
 class GradientDescent(HillClimbing):
@@ -69,4 +102,16 @@ class GradientDescent(HillClimbing):
         ###
         # Your code goes here!
         # 기존의 gradientDescent 함수 활용
-        ...?
+        current = p.randomInit()
+        valueC   = p.evaluate(current)
+
+        while True:
+            successor = p.takeStep(current, valueC)
+            valueS    = p.evaluate(successor)
+            if valueS < valueC:
+                current = successor
+                valueC  = valueS
+            else:
+                break
+        
+        p.storeResult(current, valueC)
