@@ -227,6 +227,7 @@ class SimulatedAnnealing(MetaHeuristics):
         MetaHeuristics.__init__(self)
         self._numSample = 100  # Number of samples used to determine 
                                #  initial temperature
+                               
     def displaySetting(self):
         print()
         print("Search Algorithm: Simulated Annealing")
