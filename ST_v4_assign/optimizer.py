@@ -116,7 +116,13 @@ class FirstChoice(HillClimbing):
         current = p.randomInit()   # 'current' is a list of values
         valueC = p.evaluate(current)
         i = 0
+
+        record_cnt = 0
+        f = open("./FC_record.txt", 'w')
+
         while i < self._limitStuck:
+            f.write(str(record_cnt) + ", " + str(valueC) + "\n")
+
             successor = p.randomMutant(current)
             valueS = p.evaluate(successor)
             if valueS < valueC:
@@ -125,7 +131,10 @@ class FirstChoice(HillClimbing):
                 i = 0              # Reset stuck counter
             else:
                 i += 1
+            
+            record_cnt += 1
 
+        f.close()
         p.storeResult(current, valueC)
 
 
@@ -244,8 +253,13 @@ class SimulatedAnnealing(MetaHeuristics):
 
         i = 0
         whenBestFound = 0
+        
+        record_cnt = 0
+        f = open("./SA_record.txt", 'w')
 
         while currTemp > 0 and i < self._limitEval:
+            f.write(str(record_cnt) + ", " + str(valueBest) + "\n")
+        
             successor = p.randomMutant(current)
             valueS    = p.evaluate(successor)
 
@@ -267,6 +281,9 @@ class SimulatedAnnealing(MetaHeuristics):
             i += 1
             currTemp  = self.tSchedule(currTemp)
 
+            record_cnt += 1
+
+        f.close()
         self._whenBestFound = whenBestFound
         p.storeResult(best, valueBest)
 
